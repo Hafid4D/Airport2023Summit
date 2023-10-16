@@ -1,0 +1,63 @@
+name: CI_CD_Airport2023summit
+on:
+  push:
+    branches:
+      - main
+jobs:
+
+  compile:    
+    runs-on: [self-hosted]
+
+    steps:
+    - uses: actions/checkout@v3
+    - run: mkdir /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Data
+    - run: open -W /Applications/4Dv20R2/4D.app --args /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Project/Airport2023.4DProject --create-data /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Data/data.4DD --user-param "compile"
+    - run: |
+        compilationResult=`cat compilationResult.txt`
+        echo $compilationResult
+        headCompilation=`head -n 1 compilationResult.txt`
+        rm compilationResult.txt
+        if [ "$headCompilation" = "Syntax check failed" ]
+        then
+          exit 1
+        fi
+
+  test:
+    needs: compile
+    runs-on: [self-hosted]
+
+    steps: 
+      - run: open -W /Applications/4Dv20R2/4D.app --args /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Project/Airport2023.4DProject --create-data /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Data/data.4DD --user-param "test"
+      - run: |
+          UTestResult=`cat UTestResult.txt`
+          echo $UTestResult
+          value=`head -n 1 UTestResult.txt`
+          rm UTestResult.txt
+          if [ "$value" = "Unit tests failed" ]
+          then
+            exit 1
+          fi
+
+  build:
+    needs: test
+    runs-on: [self-hosted]
+
+    steps: 
+      - run: open -W /Applications/4Dv20R2/4D.app --args /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Project/Airport2023.4DProject --create-data /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023Summit/Data/data.4DD --user-param "build"
+      - run: |
+          buildResult=`cat buildResult.txt`
+          echo $buildResult
+          value=`head -n 1 buildResult.txt`
+          rm buildResult.txt
+          if [ "$value" = "build failed" ]
+          then
+            exit 1
+          fi
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted]
+
+    steps:
+      - run: cd /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023_Build/Compiled\ Database/Airport2023 && zip -r ../Airport2023Summit.zip .
+      - run: mv /Users/abdelhafidelhour/Desktop/Summit2023/actions-runner/_work/Airport2023Summit/Airport2023_Build/Compiled\ Database/Airport2023Summit.zip /Users/abdelhafidelhour/Desktop/ProductionServer/Airport2023Summit.zip
