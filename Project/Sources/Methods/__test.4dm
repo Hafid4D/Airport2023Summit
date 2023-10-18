@@ -6,4 +6,4 @@ $httpClient:=cs:C1710.HTTPClient.new()
 
 $account:=cs:C1710.Account.new()
 $account.httpClient:=$httpClient
-$isRegFlag:=$account.isRedFlag("https://api.github.com/repos/Hafid4D/UTestt")
+$isRegFlag:=$account.isRedFlag("https://api.github.com/repos/Hafid4D/UTest")
